@@ -159,7 +159,7 @@ export default function Overview() {
                 ? commits.map((c) => (
                     <Link
                       key={c.sha}
-                      to={`/commit/${c.sha}`}
+                      to={`/history/${c.sha}`}
                       className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm transition hover:bg-white/10"
                     >
                       <div className="flex items-start justify-between gap-3">

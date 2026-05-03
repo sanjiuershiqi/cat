@@ -6,6 +6,7 @@ import Markdown from '@/components/Markdown'
 import { useSettingsStore } from '@/store/settingsStore'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
+import Lightbox from '@/components/Lightbox'
 
 type Pull = {
   number: number
@@ -35,6 +36,13 @@ type PullFile = {
   deletions: number
   changes: number
   patch?: string
+  raw_url?: string
+  blob_url?: string
+}
+
+function isImagePath(path: string) {
+  const lower = path.toLowerCase()
+  return lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.webp')
 }
 
 export default function PullRequestDetail() {
@@ -48,10 +56,11 @@ export default function PullRequestDetail() {
   const [filesPage, setFilesPage] = useState(1)
   const [filesHasMore, setFilesHasMore] = useState(true)
   const [filesLoadingMore, setFilesLoadingMore] = useState(false)
-  const [expandedFile, setExpandedFile] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [fullDiff, setFullDiff] = useState<string | null>(null)
   const [fullDiffLoading, setFullDiffLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeImage, setActiveImage] = useState<{ src: string; title: string } | null>(null)
 
   const title = useMemo(() => (pr ? `#${pr.number} ${pr.title}` : `#${number}`), [pr, number])
 
@@ -62,7 +71,7 @@ export default function PullRequestDetail() {
     setPr(null)
     setComments(null)
     setFiles(null)
-    setExpandedFile(null)
+    setSelectedFile(null)
     setFilesPage(1)
     setFilesHasMore(true)
     setFullDiff(null)
@@ -78,6 +87,7 @@ export default function PullRequestDetail() {
         setComments(c)
         setFiles(f)
         setFilesHasMore(f.length === 30)
+        setSelectedFile((prev) => prev || (f.length ? f[0].filename : null))
       })
       .catch((e) => {
         if (canceled) return
@@ -164,44 +174,102 @@ export default function PullRequestDetail() {
               </div>
             </div>
 
-            <div className="mt-3 grid gap-2">
-              {files
-                ? files.map((f) => {
-                    const open = expandedFile === f.filename
-                    return (
-                      <div key={f.filename} className="rounded-2xl border border-white/10 bg-white/5">
+            <div className="mt-3 grid gap-3 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <div className="grid max-h-[520px] gap-2 overflow-auto pr-1 [content-visibility:auto]">
+                {files
+                  ? files.map((f) => {
+                      const active = selectedFile === f.filename
+                      return (
                         <button
+                          key={f.filename}
                           type="button"
-                          className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left"
-                          onClick={() => setExpandedFile(open ? null : f.filename)}
+                          onClick={() => setSelectedFile(f.filename)}
+                          className={[
+                            'rounded-2xl border px-3 py-2 text-left text-sm transition',
+                            active
+                              ? 'border-sky-200/30 bg-sky-200/10 text-sky-50'
+                              : 'border-white/10 bg-white/5 text-white/85 hover:bg-white/10',
+                          ].join(' ')}
                         >
-                          <div className="min-w-0">
-                            <div className="truncate text-sm text-white/90">{f.filename}</div>
-                            <div className="mt-1 text-xs text-white/55">
-                              {f.status} · +{f.additions} / -{f.deletions} · {f.changes} changes
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate text-white/90">{f.filename}</div>
+                              <div className="mt-1 text-xs text-white/55">
+                                {f.status} · +{f.additions} / -{f.deletions} · {f.changes}
+                              </div>
+                            </div>
+                            <div className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70">
+                              diff
                             </div>
                           </div>
-                          <div className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70">
-                            {open ? 'hide' : 'diff'}
-                          </div>
                         </button>
-                        {open ? (
-                          <div className="border-t border-white/10 p-3">
-                            {f.patch ? (
-                              <pre className="overflow-auto rounded-2xl border border-white/10 bg-black/40 p-3 text-[12px] leading-5 text-white/80">
-                                {f.patch}
-                              </pre>
-                            ) : (
-                              <div className="text-sm text-white/55">该文件 diff 太大或不可用（GitHub 未返回 patch）。</div>
-                            )}
-                          </div>
-                        ) : null}
+                      )
+                    })
+                  : Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="h-[56px] animate-pulse rounded-2xl border border-white/10 bg-white/5" />
+                    ))}
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-white/10 bg-black/40 p-3">
+                {files && selectedFile ? (
+                  (() => {
+                    const f = files.find((x) => x.filename === selectedFile)
+                    if (!f) return null
+                    if (f.patch) {
+                      return (
+                        <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{f.patch}</pre>
+                      )
+                    }
+
+                    const previewable = !!f.raw_url && isImagePath(f.filename)
+
+                    return (
+                      <div className="space-y-3">
+                        <div className="text-sm text-white/70">
+                          Binary file diff（或 diff 太大）：GitHub 未返回 patch。
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {f.blob_url ? (
+                            <a
+                              href={f.blob_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70 hover:bg-white/10"
+                            >
+                              GitHub
+                              <ArrowUpRight className="h-3 w-3" />
+                            </a>
+                          ) : null}
+                          {f.raw_url ? (
+                            <a
+                              href={f.raw_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70 hover:bg-white/10"
+                            >
+                              Raw
+                              <ArrowUpRight className="h-3 w-3" />
+                            </a>
+                          ) : null}
+                        </div>
+                        {previewable ? (
+                          <button
+                            type="button"
+                            className="w-fit rounded-2xl border border-white/10 bg-white/5 p-1 transition hover:bg-white/10"
+                            onClick={() => setActiveImage({ src: f.raw_url!, title: f.filename })}
+                          >
+                            <img src={f.raw_url!} alt={f.filename} className="max-h-[420px] max-w-full rounded-[14px] object-contain" />
+                          </button>
+                        ) : (
+                          <div className="text-xs text-white/55">该文件为二进制或不可预览格式。</div>
+                        )}
                       </div>
                     )
-                  })
-                : Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-[56px] animate-pulse rounded-2xl border border-white/10 bg-white/5" />
-                  ))}
+                  })()
+                ) : (
+                  <div className="grid h-[320px] place-items-center text-sm text-white/55">选择一个文件查看 diff</div>
+                )}
+              </div>
             </div>
 
             {files && filesHasMore ? (
@@ -289,6 +357,15 @@ export default function PullRequestDetail() {
           </CardContent>
         </Card>
       </div>
+      {activeImage ? (
+        <Lightbox
+          open
+          src={activeImage.src}
+          title={activeImage.title}
+          subtitle={`${repo.owner}/${repo.repo}`}
+          onClose={() => setActiveImage(null)}
+        />
+      ) : null}
     </div>
   )
 }
