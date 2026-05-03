@@ -7,16 +7,36 @@ type RestOptions = {
   accept?: string
 }
 
+const DEFAULT_ACCEPT = 'application/vnd.github+json'
+const DEFAULT_API_VERSION = '2022-11-28'
+
+function getGithubBase() {
+  return import.meta.env.PROD ? 'https://api.github.com' : '/api/github/rest'
+}
+
+function buildHeaders(token: string, options: RestOptions) {
+  const headers: Record<string, string> = {}
+
+  if (import.meta.env.PROD) {
+    headers.accept = options.accept || DEFAULT_ACCEPT
+    headers['x-github-api-version'] = DEFAULT_API_VERSION
+    if (token) headers.authorization = `Bearer ${token}`
+  } else {
+    if (token) headers['x-github-token'] = token
+    if (options.accept) headers['x-github-accept'] = options.accept
+  }
+
+  if (options.body) headers['content-type'] = 'application/json'
+
+  return headers
+}
+
 export async function githubRest<T>(path: string, options: RestOptions = {}): Promise<T> {
   const token = useSettingsStore.getState().githubToken
 
-  const res = await fetch(`/api/github/rest${path}`, {
+  const res = await fetch(`${getGithubBase()}${path}`, {
     method: options.method || 'GET',
-    headers: {
-      ...(token ? { 'x-github-token': token } : {}),
-      ...(options.accept ? { 'x-github-accept': options.accept } : {}),
-      'content-type': options.body ? 'application/json' : 'text/plain',
-    },
+    headers: buildHeaders(token, options),
     body: options.body ? JSON.stringify(options.body) : undefined,
     signal: options.signal,
   })
@@ -32,12 +52,9 @@ export async function githubRest<T>(path: string, options: RestOptions = {}): Pr
 export async function githubRestText(path: string, options: RestOptions = {}): Promise<string> {
   const token = useSettingsStore.getState().githubToken
 
-  const res = await fetch(`/api/github/rest${path}`, {
+  const res = await fetch(`${getGithubBase()}${path}`, {
     method: options.method || 'GET',
-    headers: {
-      ...(token ? { 'x-github-token': token } : {}),
-      ...(options.accept ? { 'x-github-accept': options.accept } : {}),
-    },
+    headers: buildHeaders(token, options),
     signal: options.signal,
   })
 
