@@ -1,0 +1,478 @@
+<style>
+  .hint {
+    opacity: 0.9;
+    max-width: 78ch;
+  }
+
+  .design-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 14px;
+  }
+
+  .design {
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow:
+      0 24px 80px rgba(0,0,0,0.38),
+      0 1px 0 rgba(255,255,255,0.05) inset;
+  }
+
+  .design .cap {
+    padding: 14px 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .design .cap strong {
+    font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    font-size: 16px;
+    letter-spacing: 0.2px;
+  }
+
+  .design .cap span {
+    font-size: 12px;
+    opacity: 0.85;
+  }
+
+  .mock {
+    padding: 16px;
+  }
+
+  .mock .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .mock .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .mock .logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    flex: none;
+  }
+
+  .mock .repo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    min-width: 0;
+  }
+
+  .mock .repo b {
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mock .repo small {
+    font-size: 11px;
+    opacity: 0.78;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .chip {
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .side {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 12px;
+  }
+
+  .navItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    margin-top: 8px;
+  }
+
+  .navItem:first-child {
+    margin-top: 0;
+  }
+
+  .navItem .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 99px;
+    flex: none;
+    opacity: 0.95;
+  }
+
+  .navItem .label {
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    text-transform: none;
+    opacity: 0.92;
+    flex: 1;
+  }
+
+  .navItem .kpi {
+    font-size: 11px;
+    opacity: 0.78;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .main {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 12px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .panel {
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .panel h4 {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.18px;
+    opacity: 0.92;
+  }
+
+  .panel p {
+    margin: 8px 0 0 0;
+    font-size: 11px;
+    opacity: 0.78;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .row:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .row b {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.92;
+  }
+
+  .row span {
+    font-size: 11px;
+    opacity: 0.76;
+  }
+
+  .pill {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    opacity: 0.92;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .thumb {
+    height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .thumb::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.92;
+    background:
+      radial-gradient(120px 70px at 25% 30%, rgba(255,255,255,0.22), transparent 60%),
+      radial-gradient(120px 70px at 85% 60%, rgba(255,255,255,0.14), transparent 60%),
+      linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  }
+
+  .a {
+    background:
+      radial-gradient(900px 420px at 20% -10%, rgba(255,121,183,0.28), transparent 60%),
+      radial-gradient(800px 420px at 95% 0%, rgba(120,210,255,0.22), transparent 55%),
+      radial-gradient(1200px 520px at 60% 120%, rgba(255,215,130,0.12), transparent 65%),
+      linear-gradient(180deg, rgba(18,20,27,0.95), rgba(12,12,16,0.95));
+  }
+
+  .a .logo {
+    background: linear-gradient(135deg, rgba(255,121,183,0.95), rgba(120,210,255,0.95));
+  }
+
+  .a .chip {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .a .navItem.active {
+    border-color: rgba(255,121,183,0.38);
+    background: rgba(255,121,183,0.10);
+  }
+
+  .a .dot.pink { background: rgba(255,121,183,0.92); }
+  .a .dot.blue { background: rgba(120,210,255,0.92); }
+  .a .dot.gold { background: rgba(255,215,130,0.90); }
+
+  .b {
+    background:
+      radial-gradient(900px 420px at 10% -10%, rgba(70,255,195,0.18), transparent 62%),
+      radial-gradient(900px 460px at 95% 10%, rgba(255,240,170,0.14), transparent 55%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 8px),
+      linear-gradient(180deg, rgba(13,16,16,0.97), rgba(8,10,10,0.97));
+  }
+
+  .b .logo {
+    background: linear-gradient(135deg, rgba(70,255,195,0.92), rgba(255,240,170,0.92));
+  }
+
+  .b .chip {
+    background: rgba(0,0,0,0.18);
+  }
+
+  .b .navItem.active {
+    border-color: rgba(70,255,195,0.34);
+    background: rgba(70,255,195,0.10);
+  }
+
+  .b .dot.green { background: rgba(70,255,195,0.92); }
+  .b .dot.yellow { background: rgba(255,240,170,0.92); }
+  .b .dot.slate { background: rgba(180,195,200,0.85); }
+
+  @media (max-width: 980px) {
+    .design-grid { grid-template-columns: 1fr; }
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+
+<h2>Design direction — pick one</h2>
+<p class="subtitle hint">You said “基础展示看不出来”，所以这里直接给到两套高保真视觉方向：同一套信息架构（Repo 切换 + PR/History/Gallery/Stats），但整体气质不同。点击卡片选择一个方向后，我就按它继续把首页 + PR 列表 + 画廊页统一成一套可落地的 UI 系统。</p>
+
+<div class="cards">
+  <div class="card design a" data-choice="a-archive-neon" onclick="toggleSelect(this)">
+    <div class="cap">
+      <strong>A · Archive Neon</strong>
+      <span>editorial · soft neon · “museum archive” vibe</span>
+    </div>
+    <div class="mock">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div class="repo">
+            <b>Cute-Dress / Dress</b>
+            <small>Public · 2.5k ★ · 2,017 commits</small>
+          </div>
+        </div>
+        <div class="chips">
+          <div class="chip">匿名可用</div>
+          <div class="chip">Token/OAuth 增强</div>
+          <div class="chip">图片预览 + 画廊</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="side">
+          <div class="navItem active">
+            <div class="dot pink"></div>
+            <div class="label">Overview</div>
+            <div class="kpi">live</div>
+          </div>
+          <div class="navItem">
+            <div class="dot blue"></div>
+            <div class="label">PR Tracker</div>
+            <div class="kpi">+12</div>
+          </div>
+          <div class="navItem">
+            <div class="dot gold"></div>
+            <div class="label">History</div>
+            <div class="kpi">path</div>
+          </div>
+          <div class="navItem">
+            <div class="dot blue"></div>
+            <div class="label">Gallery</div>
+            <div class="kpi">A–Z</div>
+          </div>
+          <div class="navItem">
+            <div class="dot pink"></div>
+            <div class="label">Stats</div>
+            <div class="kpi">trends</div>
+          </div>
+        </div>
+
+        <div class="main">
+          <div class="grid">
+            <div class="panel" style="grid-column: span 7">
+              <h4>Pull requests</h4>
+              <div class="row"><b>#361 Add files via upload</b><span><span class="pill">merged</span></span></div>
+              <div class="row"><b>#358 add: KeqingMoe</b><span><span class="pill">merged</span></span></div>
+              <div class="row"><b>#337 auto fix workflow</b><span><span class="pill">open</span></span></div>
+              <p>fast filters · labels · file changes · review timeline</p>
+            </div>
+            <div class="panel" style="grid-column: span 5">
+              <h4>Commit pulse</h4>
+              <div class="row"><b>Apr 30</b><span>cf2712e</span></div>
+              <div class="row"><b>Apr 29</b><span>0d1b1c1</span></div>
+              <div class="row"><b>Apr 24</b><span>9302adb</span></div>
+              <p>path filter · author filter · single-file history</p>
+            </div>
+            <div class="panel" style="grid-column: span 12">
+              <h4>Gallery preview</h4>
+              <div class="gallery">
+                <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+                <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+              </div>
+              <p>lazy load · lightbox · EXIF warning (optional)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card design b" data-choice="b-industrial-grid" onclick="toggleSelect(this)">
+    <div class="cap">
+      <strong>B · Industrial Grid</strong>
+      <span>utilitarian · high-contrast · “ops dashboard” vibe</span>
+    </div>
+    <div class="mock">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div class="repo">
+            <b>Cute-Dress / Dress</b>
+            <small>PR · commits · media · trends</small>
+          </div>
+        </div>
+        <div class="chips">
+          <div class="chip">缓存优先</div>
+          <div class="chip">键盘快捷键</div>
+          <div class="chip">高信息密度</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="side">
+          <div class="navItem active">
+            <div class="dot green"></div>
+            <div class="label">Overview</div>
+            <div class="kpi">ok</div>
+          </div>
+          <div class="navItem">
+            <div class="dot slate"></div>
+            <div class="label">PR Tracker</div>
+            <div class="kpi">queue</div>
+          </div>
+          <div class="navItem">
+            <div class="dot yellow"></div>
+            <div class="label">History</div>
+            <div class="kpi">diff</div>
+          </div>
+          <div class="navItem">
+            <div class="dot slate"></div>
+            <div class="label">Gallery</div>
+            <div class="kpi">grid</div>
+          </div>
+          <div class="navItem">
+            <div class="dot green"></div>
+            <div class="label">Stats</div>
+            <div class="kpi">chart</div>
+          </div>
+        </div>
+
+        <div class="main">
+          <div class="grid">
+            <div class="panel" style="grid-column: span 6">
+              <h4>PR queue</h4>
+              <div class="row"><b>#361</b><span>merged · files</span></div>
+              <div class="row"><b>#359</b><span>merged · add user</span></div>
+              <div class="row"><b>#357</b><span>merged · photos</span></div>
+              <p>label chips · quick open · diff focus</p>
+            </div>
+            <div class="panel" style="grid-column: span 6">
+              <h4>History</h4>
+              <div class="row"><b>master</b><span>2,017</span></div>
+              <div class="row"><b>authors</b><span>375</span></div>
+              <div class="row"><b>paths</b><span>A/…Z/</span></div>
+              <p>jump to folder · tree view · file timeline</p>
+            </div>
+            <div class="panel" style="grid-column: span 12">
+              <h4>Media</h4>
+              <div class="gallery">
+                <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+                <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+              </div>
+              <p>fullscreen preview · attachment inline · markdown images</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">Question</div>
+  <p>Pick A or B. Then tell me: do you want the PR view to feel “GitHub-like” or “gallery-first with PR as provenance”。</p>
+</div>
