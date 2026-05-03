@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { FileClock, Search } from 'lucide-react'
 import { githubRest } from '@/lib/githubApi'
@@ -25,13 +25,14 @@ export default function HistoryLayout() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [q, setQ] = useState('')
+  const deferredQ = useDeferredValue(q)
 
   const filtered = useMemo(() => {
     if (!items) return null
-    const needle = q.trim().toLowerCase()
+    const needle = deferredQ.trim().toLowerCase()
     if (!needle) return items
     return items.filter((c) => `${c.sha} ${c.commit.message} ${(c.author?.login || c.commit.author.name)}`.toLowerCase().includes(needle))
-  }, [items, q])
+  }, [items, deferredQ])
 
   useEffect(() => {
     let canceled = false
@@ -56,6 +57,22 @@ export default function HistoryLayout() {
     }
   }, [repo.owner, repo.repo])
 
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const nextPage = page + 1
+      const next = await githubRest<Commit[]>(`/repos/${repo.owner}/${repo.repo}/commits?per_page=30&page=${nextPage}`)
+      setItems((prev) => (prev ? [...prev, ...next] : next))
+      setPage(nextPage)
+      setHasMore(next.length === 30)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [hasMore, loadingMore, page, repo.owner, repo.repo])
+
+  const hasSelection = typeof selected === 'string' && selected.length > 0
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -76,7 +93,7 @@ export default function HistoryLayout() {
       />
 
       <div className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
-        <Card className="overflow-hidden">
+        <Card className={cn('overflow-hidden', hasSelection ? 'hidden lg:block' : '')}>
           <CardContent className="pt-3">
             <div className="grid max-h-[70vh] gap-2 overflow-auto pr-1 [content-visibility:auto]">
               {filtered
@@ -121,21 +138,7 @@ export default function HistoryLayout() {
                       ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
                       : 'border-white/10 bg-white/5 text-white/35',
                   ].join(' ')}
-                  onClick={async () => {
-                    if (!hasMore || loadingMore) return
-                    setLoadingMore(true)
-                    try {
-                      const nextPage = page + 1
-                      const next = await githubRest<Commit[]>(
-                        `/repos/${repo.owner}/${repo.repo}/commits?per_page=30&page=${nextPage}`,
-                      )
-                      setItems((prev) => (prev ? [...prev, ...next] : next))
-                      setPage(nextPage)
-                      setHasMore(next.length === 30)
-                    } finally {
-                      setLoadingMore(false)
-                    }
-                  }}
+                  onClick={loadMore}
                 >
                   {loadingMore ? 'Loading…' : hasMore ? 'Load more' : 'No more'}
                 </button>

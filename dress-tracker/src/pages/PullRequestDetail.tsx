@@ -7,6 +7,7 @@ import { useSettingsStore } from '@/store/settingsStore'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import Lightbox from '@/components/Lightbox'
+import DiffViewer from '@/components/DiffViewer'
 
 type Pull = {
   number: number
@@ -217,7 +218,7 @@ export default function PullRequestDetail() {
                     if (!f) return null
                     if (f.patch) {
                       return (
-                        <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{f.patch}</pre>
+                        <DiffViewer value={f.patch} />
                       )
                     }
 
@@ -305,7 +306,7 @@ export default function PullRequestDetail() {
             {fullDiff ? (
               <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3">
                 <div className="mb-2 text-xs text-white/55">Unified diff</div>
-                <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{fullDiff}</pre>
+                <DiffViewer value={fullDiff} />
               </div>
             ) : null}
             </CardContent>

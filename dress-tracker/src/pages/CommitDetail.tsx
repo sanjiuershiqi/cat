@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/store/settingsStore'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import Lightbox from '@/components/Lightbox'
+import DiffViewer from '@/components/DiffViewer'
 
 type CommitFile = {
   filename: string
@@ -171,7 +172,7 @@ export default function CommitDetail() {
                 const f = data.files?.find((x) => x.filename === selectedFile)
                 if (!f) return null
                 if (f.patch) {
-                  return <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{f.patch}</pre>
+                  return <DiffViewer value={f.patch} />
                 }
 
                 const previewable = !!f.raw_url && isImagePath(f.filename)
@@ -227,7 +228,7 @@ export default function CommitDetail() {
         {diff ? (
           <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3">
             <div className="mb-2 text-xs text-white/55">Unified diff</div>
-            <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{diff}</pre>
+            <DiffViewer value={diff} />
           </div>
         ) : null}
         </CardContent>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { Filter, GitPullRequest, Search } from 'lucide-react'
 import { githubRest } from '@/lib/githubApi'
@@ -28,16 +28,17 @@ export default function PullRequestsLayout() {
   const [items, setItems] = useState<Pull[] | null>(null)
   const [state, setState] = useState<'open' | 'closed' | 'all'>('all')
   const [q, setQ] = useState('')
+  const deferredQ = useDeferredValue(q)
   const [page, setPage] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
 
   const filtered = useMemo(() => {
     if (!items) return null
-    const needle = q.trim().toLowerCase()
+    const needle = deferredQ.trim().toLowerCase()
     if (!needle) return items
     return items.filter((p) => `${p.number} ${p.title} ${p.user.login}`.toLowerCase().includes(needle))
-  }, [items, q])
+  }, [items, deferredQ])
 
   useEffect(() => {
     let canceled = false
@@ -61,6 +62,22 @@ export default function PullRequestsLayout() {
       canceled = true
     }
   }, [repo.owner, repo.repo, state])
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const nextPage = page + 1
+      const next = await githubRest<Pull[]>(`/repos/${repo.owner}/${repo.repo}/pulls?state=${state}&per_page=30&page=${nextPage}`)
+      setItems((prev) => (prev ? [...prev, ...next] : next))
+      setPage(nextPage)
+      setHasMore(next.length === 30)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [hasMore, loadingMore, page, repo.owner, repo.repo, state])
+
+  const hasSelection = selected != null && Number.isFinite(selected)
 
   return (
     <div className="space-y-4">
@@ -110,7 +127,7 @@ export default function PullRequestsLayout() {
       />
 
       <div className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
-        <Card className="overflow-hidden">
+        <Card className={cn('overflow-hidden', hasSelection ? 'hidden lg:block' : '')}>
           <CardContent className="pt-3">
             <div className="grid max-h-[70vh] gap-2 overflow-auto pr-1 [content-visibility:auto]">
               {filtered
@@ -168,21 +185,7 @@ export default function PullRequestsLayout() {
                       ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
                       : 'border-white/10 bg-white/5 text-white/35',
                   ].join(' ')}
-                  onClick={async () => {
-                    if (!hasMore || loadingMore) return
-                    setLoadingMore(true)
-                    try {
-                      const nextPage = page + 1
-                      const next = await githubRest<Pull[]>(
-                        `/repos/${repo.owner}/${repo.repo}/pulls?state=${state}&per_page=30&page=${nextPage}`,
-                      )
-                      setItems((prev) => (prev ? [...prev, ...next] : next))
-                      setPage(nextPage)
-                      setHasMore(next.length === 30)
-                    } finally {
-                      setLoadingMore(false)
-                    }
-                  }}
+                  onClick={loadMore}
                 >
                   {loadingMore ? 'Loading…' : hasMore ? 'Load more' : 'No more'}
                 </button>

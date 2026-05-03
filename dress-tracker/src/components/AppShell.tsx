@@ -5,13 +5,16 @@ import {
   ChevronDown,
   FileClock,
   GitPullRequest,
+  Menu,
   Settings,
   Sparkles,
   SunMoon,
+  X,
 } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useTheme } from '@/hooks/useTheme'
 import { useSettingsStore } from '@/store/settingsStore'
+import { IconButton } from '@/components/ui/IconButton'
 
 function classNames(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ')
@@ -39,6 +42,7 @@ export default function AppShell() {
 
   const [repoInput, setRepoInput] = useState(`${repo.owner}/${repo.repo}`)
   const [open, setOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
 
   const parsed = useMemo(() => {
     const [ownerRaw, repoRaw] = repoInput.split('/')
@@ -49,8 +53,8 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(1100px_520px_at_20%_-10%,rgba(255,121,183,0.22),transparent_60%),radial-gradient(980px_520px_at_95%_0%,rgba(120,210,255,0.18),transparent_55%),radial-gradient(1200px_520px_at_55%_120%,rgba(255,215,130,0.10),transparent_65%),linear-gradient(180deg,rgba(14,15,19,0.98),rgba(10,10,13,0.98))] text-zinc-100">
-      <div className="mx-auto flex max-w-[1400px] gap-6 px-6 py-6">
-        <aside className="w-[290px] shrink-0">
+      <div className="mx-auto flex max-w-[1400px] gap-6 px-4 py-4 lg:px-6 lg:py-6">
+        <aside className="hidden w-[290px] shrink-0 lg:block">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
             <div className="flex items-start gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
@@ -85,6 +89,11 @@ export default function AppShell() {
           <div className="rounded-2xl border border-white/10 bg-white/5 shadow-[0_34px_120px_rgba(0,0,0,0.55)]">
             <header className="relative border-b border-white/10 px-5 py-4">
               <div className="flex flex-wrap items-center gap-3">
+                <div className="lg:hidden">
+                  <IconButton label="Menu" onClick={() => setNavOpen(true)}>
+                    <Menu className="h-[18px] w-[18px]" />
+                  </IconButton>
+                </div>
                 <RepoAvatar owner={repo.owner} repo={repo.repo} />
                 <div className="min-w-0">
                   <div className="font-display text-[15px] tracking-[0.18px]">
@@ -94,6 +103,11 @@ export default function AppShell() {
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
+                  <div className="hidden lg:block">
+                    <IconButton label="Toggle theme" onClick={toggleTheme}>
+                      <SunMoon className="h-[18px] w-[18px]" />
+                    </IconButton>
+                  </div>
                   <div className="relative">
                     <button
                       type="button"
@@ -168,20 +182,76 @@ export default function AppShell() {
               </div>
             </header>
 
-            <div className="px-5 py-5">
+            <div className="px-4 py-4 pb-24 lg:px-5 lg:py-5 lg:pb-5">
               <Outlet />
             </div>
           </div>
         </main>
       </div>
+
+      {navOpen ? (
+        <div className="fixed inset-0 z-50 bg-black/70 p-4 backdrop-blur lg:hidden" onClick={() => setNavOpen(false)}>
+          <div
+            className="h-full w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#0e0f13]/95 p-4 shadow-[0_34px_120px_rgba(0,0,0,0.65)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
+                <Sparkles className="h-[18px] w-[18px] text-pink-200" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-display text-[15px] tracking-[0.18px]">Dress Tracker</div>
+                <div className="mt-0.5 text-xs text-white/60">Mobile navigation</div>
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                <IconButton label="Toggle theme" onClick={toggleTheme}>
+                  <SunMoon className="h-[18px] w-[18px]" />
+                </IconButton>
+                <IconButton label="Close" onClick={() => setNavOpen(false)}>
+                  <X className="h-[18px] w-[18px]" />
+                </IconButton>
+              </div>
+            </div>
+
+            <nav className="mt-5 space-y-1">
+              <NavItem to="/" icon={<Activity className="h-4 w-4" />} label="Overview" onNavigate={() => setNavOpen(false)} />
+              <NavItem to="/prs" icon={<GitPullRequest className="h-4 w-4" />} label="PR Tracker" onNavigate={() => setNavOpen(false)} />
+              <NavItem to="/history" icon={<FileClock className="h-4 w-4" />} label="History" onNavigate={() => setNavOpen(false)} />
+              <NavItem to="/gallery" icon={<Camera className="h-4 w-4" />} label="Gallery" onNavigate={() => setNavOpen(false)} />
+              <NavItem to="/stats" icon={<Activity className="h-4 w-4" />} label="Stats" onNavigate={() => setNavOpen(false)} />
+              <NavItem to="/settings" icon={<Settings className="h-4 w-4" />} label="Settings" onNavigate={() => setNavOpen(false)} />
+            </nav>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0e0f13]/80 px-2 py-2 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between gap-2">
+          <BottomNavItem to="/" icon={<Activity className="h-[18px] w-[18px]" />} label="Overview" />
+          <BottomNavItem to="/prs" icon={<GitPullRequest className="h-[18px] w-[18px]" />} label="PR" />
+          <BottomNavItem to="/history" icon={<FileClock className="h-[18px] w-[18px]" />} label="History" />
+          <BottomNavItem to="/gallery" icon={<Camera className="h-[18px] w-[18px]" />} label="Gallery" />
+        </div>
+      </div>
     </div>
   )
 }
 
-function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
+function NavItem({
+  to,
+  icon,
+  label,
+  onNavigate,
+}: {
+  to: string
+  icon: ReactNode
+  label: string
+  onNavigate?: () => void
+}) {
   return (
     <NavLink
       to={to}
+      onClick={() => onNavigate?.()}
       className={({ isActive }) =>
         classNames(
           'group flex items-center gap-3 rounded-xl border px-3 py-2 text-sm transition',
@@ -194,6 +264,24 @@ function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: stri
         {icon}
       </span>
       <span className="font-medium tracking-[0.1px]">{label}</span>
+    </NavLink>
+  )
+}
+
+function BottomNavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        classNames(
+          'flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-2 text-[11px] transition',
+          isActive ? 'border-pink-200/25 bg-pink-200/10 text-pink-100' : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10',
+        )
+      }
+      end={to === '/'}
+    >
+      {icon}
+      <span className="leading-none">{label}</span>
     </NavLink>
   )
 }
