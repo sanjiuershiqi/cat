@@ -1,0 +1,75 @@
+<h2>信息架构：你更喜欢哪种导航布局？</h2>
+<p class="subtitle">以 Dress 为默认仓库，同时支持切换多个仓库</p>
+
+<div class="options">
+  <div class="option" data-choice="sidebar" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>左侧边栏（推荐）</h3>
+      <p>适合功能多（PR/历史/画廊/统计），切换页面快</p>
+      <div class="mockup">
+        <div class="mockup-header">示意</div>
+        <div class="mockup-body">
+          <div style="display:flex;gap:12px">
+            <div class="mock-sidebar" style="width:260px">
+              <div class="label">Repo</div>
+              <div class="mock-input" style="margin-top:8px" placeholder="Cute-Dress/Dress"></div>
+              <div style="margin-top:12px">
+                <div class="mock-nav">概览</div>
+                <div class="mock-nav">PR 追踪</div>
+                <div class="mock-nav">提交历史</div>
+                <div class="mock-nav">图片画廊</div>
+                <div class="mock-nav">统计看板</div>
+              </div>
+            </div>
+            <div class="mock-content" style="flex:1">
+              <div class="placeholder" style="height:180px">主内容区</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="topnav" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>顶部导航</h3>
+      <p>更接近 GitHub 原生体验，但页面多时拥挤</p>
+      <div class="mockup">
+        <div class="mockup-header">示意</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Repo 选择器 | 概览 | PR | 历史 | 画廊 | 统计</div>
+          <div class="mock-content" style="margin-top:12px">
+            <div class="placeholder" style="height:180px">主内容区</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="dashboard-tabs" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>概览 + Tab</h3>
+      <p>默认是看板，常用功能用 Tab 切换；适合轻量使用</p>
+      <div class="mockup">
+        <div class="mockup-header">示意</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Repo 选择器 | Tab: 概览 / PR / 历史 / 画廊 / 统计</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px">
+            <div class="placeholder" style="height:90px">PR 状态</div>
+            <div class="placeholder" style="height:90px">最近提交</div>
+            <div class="placeholder" style="height:90px">画廊入口</div>
+            <div class="placeholder" style="height:90px">趋势</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">下一步</div>
+  <p>点击选择一个布局后，在终端告诉我你选了哪一个，以及有没有想调整的点（比如：是否需要“文件浏览/单文件历史”单独入口）。</p>
+</div>
