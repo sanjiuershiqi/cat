@@ -11,8 +11,10 @@ function getGithubToken(req: Request) {
 }
 
 function buildGithubHeaders(req: Request) {
+  const acceptOverride = req.header('x-github-accept')?.trim()
+
   const headers: Record<string, string> = {
-    accept: 'application/vnd.github+json',
+    accept: acceptOverride || 'application/vnd.github+json',
     'user-agent': 'dress-tracker',
   }
 

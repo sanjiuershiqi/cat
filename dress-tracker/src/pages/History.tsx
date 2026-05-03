@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { FileClock, Search } from 'lucide-react'
 import { githubRest } from '@/lib/githubApi'
 import { useSettingsStore } from '@/store/settingsStore'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 
 type Commit = {
   sha: string
@@ -49,26 +52,25 @@ export default function History() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
-            <FileClock className="h-[18px] w-[18px] text-amber-200" />
+      <PageHeader
+        icon={<FileClock className="h-[18px] w-[18px] text-amber-200" />}
+        title="History"
+        subtitle="站内提交浏览：commit → 文件变更 → diff（支持统一 diff）"
+        actions={
+          <div className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
+            <Search className="h-4 w-4 text-white/55" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="搜索 commit message / author / sha"
+              className="w-[260px] bg-transparent text-sm text-white/90 outline-none placeholder:text-white/35"
+            />
           </div>
-          <div className="font-display text-[18px] tracking-[0.2px]">History</div>
-        </div>
+        }
+      />
 
-        <div className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
-          <Search className="h-4 w-4 text-white/55" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="搜索 commit message / author / sha"
-            className="w-[260px] bg-transparent text-sm text-white/90 outline-none placeholder:text-white/35"
-          />
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <Card>
+        <CardContent className="pt-3">
         <div className="grid gap-2">
           {filtered
             ? filtered.map((c) => (
@@ -77,10 +79,14 @@ export default function History() {
                   to={`/commit/${c.sha}`}
                   className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm transition hover:bg-white/10"
                 >
-                  <div className="truncate text-white/90">{c.commit.message.split('\n')[0]}</div>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-xs text-white/55">
-                    <span className="truncate">{c.author?.login || c.commit.author.name}</span>
-                    <span className="shrink-0 font-mono text-[11px] text-white/50">{c.sha.slice(0, 7)}</span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-white/90">{c.commit.message.split('\n')[0]}</div>
+                      <div className="mt-1 text-xs text-white/55">
+                        {c.author?.login || c.commit.author.name} · {new Date(c.commit.author.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <Badge className="font-mono text-[11px] text-white/65">{c.sha.slice(0, 7)}</Badge>
                   </div>
                 </Link>
               ))
@@ -120,7 +126,8 @@ export default function History() {
             </button>
           </div>
         ) : null}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

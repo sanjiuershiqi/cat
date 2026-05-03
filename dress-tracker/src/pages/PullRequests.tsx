@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { Filter, GitPullRequest, Search } from 'lucide-react'
 import { githubRest } from '@/lib/githubApi'
 import { useSettingsStore } from '@/store/settingsStore'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 
 type Pull = {
   id: number
@@ -55,55 +58,53 @@ export default function PullRequests() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
-            <GitPullRequest className="h-[18px] w-[18px] text-pink-200" />
-          </div>
-          <div className="font-display text-[18px] tracking-[0.2px]">PR Tracker</div>
-        </div>
+      <PageHeader
+        icon={<GitPullRequest className="h-[18px] w-[18px] text-pink-200" />}
+        title="PR Tracker"
+        subtitle="站内追踪 PR：列表 → 详情 → 文件变更/评论/统一 diff"
+        actions={
+          <>
+            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+              <Filter className="h-4 w-4 text-white/55" />
+              <button
+                type="button"
+                onClick={() => setState('all')}
+                className={state === 'all' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
+              >
+                all
+              </button>
+              <span className="text-white/25">/</span>
+              <button
+                type="button"
+                onClick={() => setState('open')}
+                className={state === 'open' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
+              >
+                open
+              </button>
+              <span className="text-white/25">/</span>
+              <button
+                type="button"
+                onClick={() => setState('closed')}
+                className={state === 'closed' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
+              >
+                closed
+              </button>
+            </div>
+            <div className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
+              <Search className="h-4 w-4 text-white/55" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="搜索标题 / 作者 / 编号"
+                className="w-[220px] bg-transparent text-sm text-white/90 outline-none placeholder:text-white/35"
+              />
+            </div>
+          </>
+        }
+      />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
-            <Filter className="h-4 w-4 text-white/55" />
-            <button
-              type="button"
-              onClick={() => setState('all')}
-              className={state === 'all' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
-            >
-              all
-            </button>
-            <span className="text-white/25">/</span>
-            <button
-              type="button"
-              onClick={() => setState('open')}
-              className={state === 'open' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
-            >
-              open
-            </button>
-            <span className="text-white/25">/</span>
-            <button
-              type="button"
-              onClick={() => setState('closed')}
-              className={state === 'closed' ? 'text-pink-100' : 'text-white/70 hover:text-white'}
-            >
-              closed
-            </button>
-          </div>
-
-          <div className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
-            <Search className="h-4 w-4 text-white/55" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="搜索标题 / 作者 / 编号"
-              className="w-[220px] bg-transparent text-sm text-white/90 outline-none placeholder:text-white/35"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <Card>
+        <CardContent className="pt-3">
         <div className="grid gap-2">
           {filtered
             ? filtered.map((pr) => (
@@ -122,9 +123,9 @@ export default function PullRequests() {
                         {pr.draft ? ' · draft' : ''} · {new Date(pr.updated_at).toLocaleDateString()}
                       </div>
                     </div>
-                    <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70">
+                    <Badge className={pr.merged_at ? 'border-emerald-200/20 bg-emerald-200/10 text-emerald-100' : pr.state === 'open' ? 'border-pink-200/25 bg-pink-200/10 text-pink-100' : ''}>
                       {pr.merged_at ? 'merged' : pr.state}
-                    </span>
+                    </Badge>
                   </div>
                 </Link>
               ))
@@ -164,7 +165,8 @@ export default function PullRequests() {
             </button>
           </div>
         ) : null}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

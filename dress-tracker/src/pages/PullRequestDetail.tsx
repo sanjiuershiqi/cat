@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ArrowUpRight, FileDiff, GitPullRequest, MessageSquareText } from 'lucide-react'
-import { githubRest } from '@/lib/githubApi'
+import { githubRest, githubRestText } from '@/lib/githubApi'
 import Markdown from '@/components/Markdown'
 import { useSettingsStore } from '@/store/settingsStore'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Card, CardContent } from '@/components/ui/Card'
 
 type Pull = {
   number: number
@@ -47,6 +49,8 @@ export default function PullRequestDetail() {
   const [filesHasMore, setFilesHasMore] = useState(true)
   const [filesLoadingMore, setFilesLoadingMore] = useState(false)
   const [expandedFile, setExpandedFile] = useState<string | null>(null)
+  const [fullDiff, setFullDiff] = useState<string | null>(null)
+  const [fullDiffLoading, setFullDiffLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const title = useMemo(() => (pr ? `#${pr.number} ${pr.title}` : `#${number}`), [pr, number])
@@ -61,6 +65,7 @@ export default function PullRequestDetail() {
     setExpandedFile(null)
     setFilesPage(1)
     setFilesHasMore(true)
+    setFullDiff(null)
 
     Promise.all([
       githubRest<Pull>(`/repos/${repo.owner}/${repo.repo}/pulls/${number}`),
@@ -86,33 +91,24 @@ export default function PullRequestDetail() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
-            <GitPullRequest className="h-[18px] w-[18px] text-pink-200" />
-          </div>
-          <div className="min-w-0">
-            <div className="truncate font-display text-[18px] tracking-[0.2px]">{title}</div>
-            <div className="mt-1 text-xs text-white/55">
-              {pr
-                ? `${pr.user.login} · ${pr.merged_at ? 'merged' : pr.state} · ${new Date(pr.updated_at).toLocaleString()}`
-                : '加载中…'}
-            </div>
-          </div>
-        </div>
-
-        {pr ? (
-          <a
-            href={pr.html_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/80 transition hover:bg-white/10"
-          >
-            GitHub
-            <ArrowUpRight className="h-4 w-4" />
-          </a>
-        ) : null}
-      </div>
+      <PageHeader
+        icon={<GitPullRequest className="h-[18px] w-[18px] text-pink-200" />}
+        title="Pull request"
+        subtitle={pr ? `${title} · ${pr.user.login} · ${pr.merged_at ? 'merged' : pr.state} · ${new Date(pr.updated_at).toLocaleString()}` : `${title} · 加载中…`}
+        actions={
+          pr ? (
+            <a
+              href={pr.html_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/80 transition hover:bg-white/10"
+            >
+              GitHub
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          ) : null
+        }
+      />
 
       {error ? (
         <div className="rounded-2xl border border-rose-200/20 bg-rose-200/10 p-4 text-sm text-rose-100">{error}</div>
@@ -120,14 +116,17 @@ export default function PullRequestDetail() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="font-display text-[14px] tracking-[0.18px]">Description</div>
-            <div className="mt-2">
-              {pr ? <Markdown value={pr.body || '—'} /> : <div className="h-[160px] animate-pulse rounded-2xl border border-white/10 bg-white/5" />}
-            </div>
-          </div>
+          <Card>
+            <CardContent>
+              <div className="font-display text-[14px] tracking-[0.18px]">Description</div>
+              <div className="mt-2">
+                {pr ? <Markdown value={pr.body || '—'} /> : <div className="h-[160px] animate-pulse rounded-2xl border border-white/10 bg-white/5" />}
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <Card>
+            <CardContent>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5">
@@ -135,7 +134,34 @@ export default function PullRequestDetail() {
                 </div>
                 <div className="font-display text-[14px] tracking-[0.18px]">Files changed</div>
               </div>
-              <div className="text-xs text-white/55">{files ? files.length : '—'}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-white/55">{files ? files.length : '—'}</div>
+                <button
+                  type="button"
+                  disabled={!pr || fullDiffLoading}
+                  className={[
+                    'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition',
+                    pr && !fullDiffLoading
+                      ? 'border-sky-200/20 bg-sky-200/10 text-sky-100 hover:bg-sky-200/15'
+                      : 'border-white/10 bg-white/5 text-white/35',
+                  ].join(' ')}
+                  onClick={async () => {
+                    if (!pr || fullDiffLoading) return
+                    setFullDiffLoading(true)
+                    try {
+                      const text = await githubRestText(`/repos/${repo.owner}/${repo.repo}/pulls/${number}`, {
+                        accept: 'application/vnd.github.v3.diff',
+                      })
+                      setFullDiff(text)
+                    } finally {
+                      setFullDiffLoading(false)
+                    }
+                  }}
+                >
+                  <FileDiff className="h-4 w-4" />
+                  {fullDiffLoading ? 'Loading…' : fullDiff ? 'Unified diff' : 'Load unified diff'}
+                </button>
+              </div>
             </div>
 
             <div className="mt-3 grid gap-2">
@@ -207,10 +233,19 @@ export default function PullRequestDetail() {
                 </button>
               </div>
             ) : null}
-          </div>
+
+            {fullDiff ? (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3">
+                <div className="mb-2 text-xs text-white/55">Unified diff</div>
+                <pre className="max-h-[520px] overflow-auto text-[12px] leading-5 text-white/80">{fullDiff}</pre>
+              </div>
+            ) : null}
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <Card>
+          <CardContent>
           <div className="flex items-center justify-between">
             <div className="font-display text-[14px] tracking-[0.18px]">Timeline</div>
             <div className="text-xs text-white/55">{comments ? comments.length : '—'}</div>
@@ -251,7 +286,8 @@ export default function PullRequestDetail() {
             <MessageSquareText className="h-4 w-4 text-white/45" />
             评论图片与附件在 Markdown 内直接预览
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
