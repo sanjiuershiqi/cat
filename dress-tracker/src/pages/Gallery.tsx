@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Camera, ChevronRight, Folder, Image as ImageIcon, X } from 'lucide-react'
+import { Camera, ChevronRight, Folder, Image as ImageIcon } from 'lucide-react'
 import { githubRest } from '@/lib/githubApi'
 import { useSettingsStore } from '@/store/settingsStore'
+import Lightbox from '@/components/Lightbox'
 
 type ContentItem = {
   name: string
@@ -153,28 +154,13 @@ export default function Gallery() {
       </div>
 
       {active ? (
-        <div className="fixed inset-0 z-50 bg-black/70 p-6 backdrop-blur" role="dialog" aria-modal="true">
-          <div className="mx-auto flex h-full max-w-[1200px] flex-col">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0e0f13]/90 px-4 py-3">
-              <div className="min-w-0">
-                <div className="truncate font-display text-[14px] tracking-[0.18px]">{active.name}</div>
-                <div className="mt-0.5 text-xs text-white/60">{repo.owner}/{repo.repo}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActive(null)}
-                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5 text-white/80 transition hover:bg-white/10"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
-              <img src={active.url} alt={active.name} className="h-full w-full object-contain" />
-            </div>
-          </div>
-        </div>
+        <Lightbox
+          open
+          src={active.url}
+          title={active.name}
+          subtitle={`${repo.owner}/${repo.repo}`}
+          onClose={() => setActive(null)}
+        />
       ) : null}
     </div>
   )

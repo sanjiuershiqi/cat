@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, GitCommitHorizontal, GitPullRequest, Image } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { githubRest } from '@/lib/githubApi'
 import { useSettingsStore } from '@/store/settingsStore'
 
@@ -108,11 +109,9 @@ export default function Overview() {
           icon={<GitPullRequest className="h-[18px] w-[18px] text-pink-200" />}
           items={prs}
           render={(pr) => (
-            <a
+            <Link
               key={pr.id}
-              href={pr.html_url}
-              target="_blank"
-              rel="noreferrer"
+              to={`/prs/${pr.number}`}
               className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm transition hover:bg-white/10"
             >
               <div className="min-w-0">
@@ -122,7 +121,7 @@ export default function Overview() {
               <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/70">
                 {pr.merged_at ? 'merged' : pr.state}
               </span>
-            </a>
+            </Link>
           )}
         />
 
@@ -131,11 +130,9 @@ export default function Overview() {
           icon={<GitCommitHorizontal className="h-[18px] w-[18px] text-sky-200" />}
           items={commits}
           render={(c) => (
-            <a
+            <Link
               key={c.sha}
-              href={c.html_url}
-              target="_blank"
-              rel="noreferrer"
+              to={`/commit/${c.sha}`}
               className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm transition hover:bg-white/10"
             >
               <div className="truncate text-white/90">{c.commit.message.split('\n')[0]}</div>
@@ -143,7 +140,7 @@ export default function Overview() {
                 <span className="truncate">{c.author?.login || c.commit.author.name}</span>
                 <span className="shrink-0 font-mono text-[11px] text-white/50">{c.sha.slice(0, 7)}</span>
               </div>
-            </a>
+            </Link>
           )}
         />
       </div>

@@ -21,6 +21,9 @@ export default function PullRequests() {
   const [items, setItems] = useState<Pull[] | null>(null)
   const [state, setState] = useState<'open' | 'closed' | 'all'>('all')
   const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
 
   const filtered = useMemo(() => {
     if (!items) return null
@@ -32,14 +35,18 @@ export default function PullRequests() {
   useEffect(() => {
     let canceled = false
     setItems(null)
-    githubRest<Pull[]>(`/repos/${repo.owner}/${repo.repo}/pulls?state=${state}&per_page=30`)
+    setPage(1)
+    setHasMore(true)
+    githubRest<Pull[]>(`/repos/${repo.owner}/${repo.repo}/pulls?state=${state}&per_page=30&page=1`)
       .then((data) => {
         if (canceled) return
         setItems(data)
+        setHasMore(data.length === 30)
       })
       .catch(() => {
         if (canceled) return
         setItems([])
+        setHasMore(false)
       })
     return () => {
       canceled = true
@@ -125,6 +132,38 @@ export default function PullRequests() {
                 <div key={i} className="h-[52px] animate-pulse rounded-xl border border-white/10 bg-white/5" />
               ))}
         </div>
+
+        {items && q.trim() === '' ? (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              disabled={!hasMore || loadingMore}
+              className={[
+                'h-10 rounded-xl border px-4 text-sm transition',
+                hasMore && !loadingMore
+                  ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+                  : 'border-white/10 bg-white/5 text-white/35',
+              ].join(' ')}
+              onClick={async () => {
+                if (!hasMore || loadingMore) return
+                setLoadingMore(true)
+                try {
+                  const nextPage = page + 1
+                  const next = await githubRest<Pull[]>(
+                    `/repos/${repo.owner}/${repo.repo}/pulls?state=${state}&per_page=30&page=${nextPage}`,
+                  )
+                  setItems((prev) => (prev ? [...prev, ...next] : next))
+                  setPage(nextPage)
+                  setHasMore(next.length === 30)
+                } finally {
+                  setLoadingMore(false)
+                }
+              }}
+            >
+              {loadingMore ? 'Loading…' : hasMore ? 'Load more' : 'No more'}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   )

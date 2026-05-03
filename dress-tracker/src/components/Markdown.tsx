@@ -1,7 +1,8 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSettingsStore } from '@/store/settingsStore'
+import Lightbox from '@/components/Lightbox'
 
 function absoluteUrl(owner: string, repo: string, path: string) {
   const clean = path.replace(/^\//, '').replace(/^\.\//, '')
@@ -15,6 +16,7 @@ function absoluteBlobUrl(owner: string, repo: string, path: string) {
 
 export default function Markdown({ value }: { value: string }) {
   const repo = useSettingsStore((s) => s.repo)
+  const [active, setActive] = useState<{ src: string; title: string } | null>(null)
 
   const components = useMemo(
     () => ({
@@ -34,13 +36,15 @@ export default function Markdown({ value }: { value: string }) {
       img: (props: any) => {
         const src = typeof props.src === 'string' ? props.src : ''
         const nextSrc = src && !src.startsWith('http') ? absoluteUrl(repo.owner, repo.repo, src) : src
+        const alt = typeof props.alt === 'string' ? props.alt : 'image'
         return (
-          <img
-            {...props}
-            src={nextSrc}
-            className="mt-3 max-w-full rounded-2xl border border-white/10"
-            loading="lazy"
-          />
+          <button
+            type="button"
+            className="mt-3 block w-fit max-w-full rounded-2xl border border-white/10 bg-white/5 p-1 transition hover:bg-white/10"
+            onClick={() => setActive({ src: nextSrc, title: alt })}
+          >
+            <img {...props} src={nextSrc} alt={alt} className="max-h-[520px] w-auto max-w-full rounded-[14px] object-contain" loading="lazy" />
+          </button>
         )
       },
       p: (props: any) => <p {...props} className="mt-3 text-sm leading-7 text-white/80" />,
@@ -61,9 +65,19 @@ export default function Markdown({ value }: { value: string }) {
   )
 
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-      {value}
-    </ReactMarkdown>
+    <>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {value}
+      </ReactMarkdown>
+      {active ? (
+        <Lightbox
+          open
+          src={active.src}
+          title={active.title}
+          subtitle={`${repo.owner}/${repo.repo}`}
+          onClose={() => setActive(null)}
+        />
+      ) : null}
+    </>
   )
 }
-

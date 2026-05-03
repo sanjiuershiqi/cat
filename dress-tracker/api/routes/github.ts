@@ -53,6 +53,12 @@ router.all('/rest/*', async (req: Request, res: Response) => {
 
     const etag = upstreamRes.headers.get('etag')
     if (etag) res.setHeader('etag', etag)
+    const link = upstreamRes.headers.get('link')
+    if (link) res.setHeader('link', link)
+    const rateRemaining = upstreamRes.headers.get('x-ratelimit-remaining')
+    if (rateRemaining) res.setHeader('x-ratelimit-remaining', rateRemaining)
+    const rateReset = upstreamRes.headers.get('x-ratelimit-reset')
+    if (rateReset) res.setHeader('x-ratelimit-reset', rateReset)
 
     res.status(upstreamRes.status)
 
@@ -91,4 +97,3 @@ router.post('/graphql', async (req: Request, res: Response) => {
 })
 
 export default router
-
